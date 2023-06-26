@@ -1,4 +1,5 @@
-import { html } from 'vite-plugin-ssr'
+import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server"
+const base = import.meta.env.BASE_URL
 
 export { render }
 export { passToClient }
@@ -9,25 +10,45 @@ const passToClient = ['pageProps', 'routeParams']
 async function render(pageContext) {
   const app = pageContext.Page.render(pageContext)
   const appHtml = app.html
-  const appCss = app.css.code
+  const appHead = app.head
 
-  // See https://vite-plugin-ssr.com/html-head
-  const { documentProps } = pageContext
-  const title = (documentProps && documentProps.title) || 'Vite SSR app (Svelte version)'
-  const desc = (documentProps && documentProps.description) || 'App using Vite + vite-plugin-ssr (Svelte version)'
+  // We are using Svelte's app.head variable rather than the Vite Plugin SSR
+  // technique described here: https://vite-plugin-ssr.com/html-head This seems
+  // easier for using data fetched from APIs and also allows us to input the
+  // data using our custom MetaTags Svelte component.
 
-  return html`<!DOCTYPE html>
+  return escapeInject`<!DOCTYPE html>
     <html lang="en">
       <head>
         <meta charset="UTF-8" />
-        <link rel="icon" href="/logo.svg" />
+        <link rel="icon" href="${base}logo.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="${desc}" />
-        <title>${title}</title>
-        <style>${appCss}</style>
+        ${dangerouslySkipEscape(appHead)}
       </head>
       <body>
-        <div id="app">${html.dangerouslySkipEscape(appHtml)}</div>
+        <div id="app">${dangerouslySkipEscape(appHtml)}</div>
       </body>
+
+      <noscript>
+        <style>
+          /* allow components to use a .no-js class corresponding with the global.csss file */
+          .no-js {
+            visibility: visible;
+          }
+          /* display a no-javascript banner */
+          html::before {
+            content: 'Please enable JavaScript to use this site!';
+            width:100%;
+            background: red;
+            color: white;
+            height: 60px;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+         }
+        </style>
+      </noscript>
+
     </html>`
 }

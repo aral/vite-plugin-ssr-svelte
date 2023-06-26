@@ -1,18 +1,24 @@
 <script>
-  import Layout from '../__layout.svelte'
+  import MetaTags from '../_components/MetaTags.svelte';
+  import Layout from '../__layout.svelte';
+  export let pageProps;
+  import "./api-style.css"; // style for html from API that the compiler doesn't see
 </script>
 
-<main>
-  <Layout>
-    <h1>About</h1>
-    <p>A colored page.</p>
-  </Layout>
-</main>
+<MetaTags title={pageProps.title} description={pageProps.body} />
 
-<style>
-  /* Note: for * :global() to work, the component must be within
-    ===== a parent DOM element (in this case, the <main> block). */
-  * :global(h1), * :global(p) {
-    color: green;
+<Layout>
+  <h1>{pageProps.title}</h1>
+  <div>{@html pageProps.body}</div>
+</Layout>
+
+<style scoped>
+/* any tags you style here that are only referenced in the API data will be
+ * stripped out by the compiler because it doesn't know they get used. Put any of
+ * that stuff in either the global.css file or create a new css file in this
+ * folder and and import it in the script tag above to get around this. */
+
+  h1 {
+    color: var(--cyan30);
   }
-</style>
+ </style>
